@@ -15,4 +15,5 @@ module.exports = {
 
   // 프로필 조회
   READ_PROFILE_SUCCESS: '프로필 조회 성공',
+  DB_ERROR: '데이터베이스 오류',
 };

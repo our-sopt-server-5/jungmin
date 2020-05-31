@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-let User = require('../models/db');
 let { sc, rm, au } = require('../modules');
+let User = require('../models/user');
 
 /*
  회원가입 
@@ -16,22 +16,27 @@ router.post('/signup', async (req, res) => {
     res.status(sc.BAD_REQUEST).send(au.fail(sc.BAD_REQUEST, rm.NULL_VALUE));
     return;
   }
-
-  if (User.filter((user) => user.id == id).length > 0) {
+  // 사용중인 아이디가 있는지 확인
+  if (User.checkUser(user)) {
     res.status(sc.BAD_REQUEST).send(au.fail(sc.BAD_REQUEST, rm.ALREADY_ID));
     return;
   }
 
-  await User.push(id, name, password, email);
+  const salt = 'wgrwg13r2ojri3lwskf93r2';
+  const idx = await User.signup(id, name, password, salt, email);
+
+  if (idx === -1) {
+    return res.status(sc.DB_ERROR).send(au.fail(sc.DB_ERROR, rm.DB_ERROR));
+  }
   // 응답 메시지를 보낸다.
-  res.status(sc.OK).send(User);
+  res.status(sc.OK).send(au.success(sc.OK, rm.CREATED_USER, { userId: idx }));
 });
 
 /*
  로그인
  url: localhost:3000/user/signin
  method : POST 
-*/
+
 
 router.post('signin', async (req, res) => {
   const { id, password } = req.body;
@@ -63,7 +68,7 @@ router.post('signin', async (req, res) => {
   프로필 조회 구현하기
   method: GET
   URL : localhost:3000/user/profile/:id
-*/
+
 router.get('/profile/:id', async (req, res) => {
   const userId = req.params;
   console.log(userId.id);
@@ -83,5 +88,5 @@ router.get('/profile/:id', async (req, res) => {
     res.status(sc.INTERNAL_SERVER_ERROR).send(au.fail(sc.INTERNAL_SERVER_ERROR, rm.INTERNAL_SERVER_ERROR));
     return;
   }
-});
+});*/
 module.exports = router;
